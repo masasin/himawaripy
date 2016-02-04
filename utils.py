@@ -1,9 +1,9 @@
 # http://stackoverflow.com/a/21213358/4466589
-
 import os
 import sys
 import subprocess
 import re
+
 
 def get_desktop_environment():
     # From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment
@@ -14,17 +14,22 @@ def get_desktop_environment():
         return "windows"
     elif sys.platform == "darwin":
         return "mac"
-    else: # Most likely either a POSIX system or something not much common
+    else:  # Most likely either a POSIX system or something not much common
         desktop_session = os.environ.get("DESKTOP_SESSION")
-        if desktop_session is not None: # Easier to match if we don't have to deal with caracter cases
+        if desktop_session is not None:
             desktop_session = desktop_session.lower()
-            if desktop_session in ["gnome", "unity", "cinnamon", "mate", "xfce4", "lxde", "fluxbox", 
-                                   "blackbox", "openbox", "icewm", "jwm", "afterstep","trinity", "kde"]:
+            if desktop_session in ("gnome", "unity", "cinnamon", "mate",
+                                   "xfce4", "lxde", "fluxbox", "blackbox",
+                                   "openbox", "icewm", "jwm", "afterstep",
+                                   "trinity", "kde"):
                 return desktop_session
+
             ## Special cases ##
-            # Canonical sets $DESKTOP_SESSION to Lubuntu rather than LXDE if using LXDE.
-            # There is no guarantee that they will not do the same with the other desktop environments.
-            elif "xfce" in desktop_session or desktop_session.startswith("xubuntu"):
+            # Canonical sets $DESKTOP_SESSION to Lubuntu rather than LXDE if
+            # using LXDE. There is no guarantee that they will not do the same
+            # with the other desktop environments.
+            elif ("xfce" in desktop_session
+                  or desktop_session.startswith("xubuntu")):
                 return "xfce4"
             elif desktop_session.startswith("ubuntu"):
                 return "unity"       
@@ -62,13 +67,14 @@ def get_desktop_environment():
 
     return "unknown"
 
+
 def is_running(process):
     # From http://www.bloggerpolis.com/2011/05/how-to-check-if-a-process-is-running-using-python/
     # and http://richarddingwall.name/2009/06/18/windows-equivalents-of-ps-and-kill-commands/
-    try: # Linux/Unix
-        s = subprocess.Popen(["ps", "axw"],stdout=subprocess.PIPE)
-    except: #Windows
-        s = subprocess.Popen(["tasklist", "/v"],stdout=subprocess.PIPE)
+    try:  # Linux/Unix
+        s = subprocess.Popen(["ps", "axw"], stdout=subprocess.PIPE)
+    except:  #Windows
+        s = subprocess.Popen(["tasklist", "/v"], stdout=subprocess.PIPE)
     for x in s.stdout:
         if re.search(process, str(x)):
             return True
