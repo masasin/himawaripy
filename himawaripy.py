@@ -72,7 +72,7 @@ def build_png(png, time_as_url):
                     tiledata = tile_w.read()
 
                 tile = Image.open(BytesIO(tiledata))
-                png.paste(tile, (width*x, height*y, width(x+1), height*(y+1)))
+                png.paste(tile, (width*x, height*y, width*(x+1), height*(y+1)))
                 pbar.update()
 
 
