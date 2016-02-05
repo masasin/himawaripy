@@ -72,7 +72,7 @@ def build_png(png, time_as_url):
                     tiledata = tile_w.read()
 
                 tile = Image.open(BytesIO(tiledata))
-                png.paste(tile, (width*x, height*y, width*(x+1), height*(y+1)))
+                png.paste(tile, (width*x, height*y, width(x+1), height*(y+1)))
                 pbar.update()
 
 
@@ -99,6 +99,10 @@ def set_background():
              .format(output_file).split())
     elif de == "lxde":
         call("display -window root {}".format(output_file).split())
+    elif de == "mac":
+        call('osascript -e \'tell application "Finder" to set '
+             'desktop picture to POSIX file "{}"\''
+             .format(output_file).split())
     else:
         logging.error("Your desktop environment '{}' is not supported."
                       .format(de))
