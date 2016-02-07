@@ -88,7 +88,7 @@ def create_png():
 
 def build_png(png, time_as_url):
     with tqdm(desc="Tiles downloaded", total=level**2, leave=True,
-              unit=" tiles", unit_scale="true") as pbar:
+              unit="tile", unit_scale="true") as pbar:
         for x in range(level):
             for y in range(level):
                 tile_url = image_url.format(level, width, time_as_url, x, y)
