@@ -2,8 +2,7 @@
 from contextlib import contextmanager
 from io import BytesIO
 from json import loads
-from os import makedirs
-from os.path import expanduser, split
+import os
 from subprocess import call
 import logging
 import sys
@@ -16,10 +15,17 @@ from tqdm import tqdm
 from utils import get_desktop_environment
 
 
+_home_dir = os.getenv("USER_HOME", "/tmp")
+_log_dir = os.path.join(_home_dir, ".logs")
+_log_file = os.path.join(_log_dir, "himawaripy.log")
+os.makedirs(_log_dir, exist_ok=True)
+
 json_url = "http://himawari8-dl.nict.go.jp/himawari8/img/D531106/latest.json"
 image_url = "http://himawari8.nict.go.jp/img/D531106/{}d/{}/{}_{}_{}.png"
 
 # Time formats
+logfile_fmt = "%(name)-12s : %(levelname)-8s  %(message)s"
+console_fmt = "%(levelname)-8s : %(message)s"
 date_fmt_iso = "%Y-%m-%d %H:%M:%S"
 date_fmt_url = "%Y/%m/%d/%H%M%S"
 
@@ -29,21 +35,40 @@ height = 550
 
 level = 4  # Increases the quality and the size. Possible values: 4, 8, 16, 20
 
-output_file = expanduser("~/.config/himawari/himawari-latest.png")
+output_file = os.path.expanduser("~/.config/himawari/himawari-latest.png")
+
+# Log everything to file
+logging.basicConfig(level=logging.DEBUG,
+                    format="%(asctime)s " + logfile_fmt,
+                    datefmt=date_fmt_iso,
+                    filename=_log_file,
+                    filemode="a")
+
+# Log important data to console
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+console.setFormatter(logging.Formatter(console_fmt))
+logging.getLogger("").addHandler(console)
+
+# Hide info logs from requests
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.WARNING)
+
+logger = logging.getLogger("himawaripy")
 
 
 def main():
-    logging.info("Updating...")
+    logger.info("Updating...")
     latest_timestamp = get_latest_timestamp(json_url)
-    logging.info("Latest version: {} GMT\n"
-                 .format(strftime(date_fmt_iso, latest_timestamp)))
+    logger.info("Latest version: {} GMT\n"
+                .format(strftime(date_fmt_iso, latest_timestamp)))
     time_as_url = strftime(date_fmt_url, latest_timestamp)
 
     with create_png() as image:
         build_png(image, time_as_url)
 
     set_background()
-    logging.info("Done!")
+    logger.info("Done!")
 
 
 def get_latest_timestamp(json_url):
@@ -56,8 +81,8 @@ def get_latest_timestamp(json_url):
 def create_png():
     png = Image.new('RGB', (width*level, height*level))
     yield png
-    logging.info("Saving image")
-    makedirs(split(output_file)[0], exist_ok=True)
+    logger.info("Saving image")
+    os.makedirs(os.path.split(output_file)[0], exist_ok=True)
     png.save(output_file, "PNG")
 
 
@@ -77,7 +102,7 @@ def build_png(png, time_as_url):
 
 
 def set_background():
-    logging.info("Setting background")
+    logger.info("Setting background")
     de = get_desktop_environment()
     if de in ("gnome", "unity", "cinnamon"):
         # Because of a bug and stupid design of gsettings
