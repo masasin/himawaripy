@@ -7,9 +7,9 @@ from subprocess import call
 import logging
 import sys
 from time import strptime, strftime
-from urllib.request import urlopen
 
 from PIL import Image
+import requests
 from tqdm import tqdm
 
 from utils import get_desktop_environment
@@ -72,9 +72,8 @@ def main():
 
 
 def get_latest_timestamp(json_url):
-    with urlopen(json_url) as latest_json:
-        return strptime(loads(latest_json.read().decode("utf-8"))["date"],
-                        date_fmt_iso)
+    latest_json = requests.get(json_url)
+    return strptime(loads(latest_json.content)["date"], date_fmt_iso)
 
 
 @contextmanager
@@ -91,11 +90,8 @@ def build_png(png, time_as_url):
               unit=" tiles", unit_scale="true") as pbar:
         for x in range(level):
             for y in range(level):
-                with urlopen(image_url.format(level, width,
-                                              time_as_url,
-                                              x, y)) as tile_w:
-                    tiledata = tile_w.read()
-
+                tile_url = image_url.format(level, width, time_as_url, x, y)
+                tiledata = requests.get(tile_url).content
                 tile = Image.open(BytesIO(tiledata))
                 png.paste(tile, (width*x, height*y, width*(x+1), height*(y+1)))
                 pbar.update()
