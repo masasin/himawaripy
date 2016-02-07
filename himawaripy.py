@@ -7,6 +7,7 @@ from subprocess import call
 import logging
 import sys
 from time import strptime, strftime
+import sys
 
 from PIL import Image
 import requests
@@ -125,12 +126,14 @@ def set_background():
              'desktop picture to POSIX file "{}"\''
              .format(output_file).split())
     else:
-        logging.error("Your desktop environment '{}' is not supported."
-                      .format(de))
+        logger.error("Your desktop environment '{}' is not supported."
+                     .format(de))
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,
-                        format="%(levelname)-8s: %(message)s")
-    main()
+    try:
+        main()
+    except requests.exceptions.ConnectionError:
+        logger.critical("Connection error! Are you online?")
+        sys.exit(1)
