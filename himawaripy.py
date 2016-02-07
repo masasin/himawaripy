@@ -126,7 +126,7 @@ def set_background():
              'desktop picture to POSIX file "{}"\''
              .format(output_file).split())
     else:
-        logger.error("Your desktop environment '{}' is not supported."
+        logger.error("Your desktop environment '{}' is not supported"
                      .format(de))
         sys.exit(1)
 
@@ -134,6 +134,8 @@ def set_background():
 if __name__ == "__main__":
     try:
         main()
+    except KeyboardInterrupt:
+        logger.error("Interrupted by user")
     except requests.exceptions.ConnectionError:
         logger.critical("Connection error! Are you online?")
         sys.exit(1)
