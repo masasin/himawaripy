@@ -74,7 +74,7 @@ def main():
 
 def get_latest_timestamp(json_url):
     latest_json = requests.get(json_url)
-    return strptime(loads(latest_json.content)["date"], date_fmt_iso)
+    return strptime(loads(latest_json.content.decode())["date"], date_fmt_iso)
 
 
 @contextmanager
