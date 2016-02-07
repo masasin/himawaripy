@@ -52,8 +52,8 @@ console.setFormatter(logging.Formatter(console_fmt))
 logging.getLogger("").addHandler(console)
 
 # Hide info logs from requests
-logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("requests").setLevel(logging.WARNING)
+for library in ("PIL", "requests", "urllib3"):
+    logging.getLogger(library).setLevel(logging.WARNING)
 
 logger = logging.getLogger("himawaripy")
 
@@ -61,7 +61,7 @@ logger = logging.getLogger("himawaripy")
 def main():
     logger.info("Updating...")
     latest_timestamp = get_latest_timestamp(json_url)
-    logger.info("Latest version: {} GMT\n"
+    logger.info("Latest version: {} GMT"
                 .format(strftime(date_fmt_iso, latest_timestamp)))
     time_as_url = strftime(date_fmt_url, latest_timestamp)
 
