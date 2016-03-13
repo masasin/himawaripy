@@ -138,7 +138,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.error("Interrupted by user")
     except requests.exceptions.ConnectionError:
-        logger.critical("Connection error! Are you online?")
+        logger.exception("Connection error! Are you online?")
         sys.exit(1)
     except requests.exceptions.Timeout:
         logger.exception("Timeout error!")
