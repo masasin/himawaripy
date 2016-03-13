@@ -23,6 +23,7 @@ os.makedirs(_log_dir, exist_ok=True)
 
 json_url = "http://himawari8-dl.nict.go.jp/himawari8/img/D531106/latest.json"
 image_url = "http://himawari8.nict.go.jp/img/D531106/{}d/{}/{}_{}_{}.png"
+timeout = 1  # second
 
 # Time formats
 logfile_fmt = "%(name)-12s : %(levelname)-8s  %(message)s"
@@ -73,7 +74,7 @@ def main():
 
 
 def get_latest_timestamp(json_url):
-    latest_json = requests.get(json_url)
+    latest_json = requests.get(json_url, timeout=timeout)
     return strptime(loads(latest_json.content.decode())["date"], date_fmt_iso)
 
 
@@ -92,7 +93,7 @@ def build_png(png, time_as_url):
         for x in range(level):
             for y in range(level):
                 tile_url = image_url.format(level, width, time_as_url, x, y)
-                tiledata = requests.get(tile_url).content
+                tiledata = requests.get(tile_url, timeout=timeout).content
                 tile = Image.open(BytesIO(tiledata))
                 png.paste(tile, (width*x, height*y, width*(x+1), height*(y+1)))
                 pbar.update()
@@ -138,4 +139,7 @@ if __name__ == "__main__":
         logger.error("Interrupted by user")
     except requests.exceptions.ConnectionError:
         logger.critical("Connection error! Are you online?")
+        sys.exit(1)
+    except requests.exceptions.Timeout:
+        logger.exception("Timeout error!")
         sys.exit(1)
