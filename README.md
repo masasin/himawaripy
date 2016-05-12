@@ -24,19 +24,19 @@ near-realtime picture of Earth.
 
 ## Configuration
 You can configure the level of detail, by modifying the script. You can set the
-global variable `level` to `4`, `8`, `16`, or `20` to increase the quality (and
+global variable `LEVEL` to `4`, `8`, `16`, or `20` to increase the quality (and
 thus the file size as well). Please keep in mind that it will also take more
 time to download the tiles.
 
 You can also change the path of the latest picture, which is by default
-`~/.himawari/himawari-latest.png`, by changing the `output_file` variable.
+`~/.config/himawari/himawari-latest.png`, by changing the `OUTPUT_FILE` variable.
 
 ## Installation
-    cd ~
-    git clone https://github.com/boramalper/himawaripy.git
+    cd /path/to/your/scripts
+    git clone https://github.com/masasin/himawaripy.git
     
     # configure
-    cd ~/himawaripy
+    cd himawaripy
     vi himawaripy.py
     
     # test whether it's working
@@ -44,8 +44,10 @@ You can also change the path of the latest picture, which is by default
     
     # set up a cronjob
     crontab -e
-    # Add the line:
-    # */10 * * * * /home/USERNAME/himawaripy/himawaripy.py
+    # Add these lines:
+    USER_HOME = /home/yourusername
+    
+    */10 * * * * $USER_HOME/path/to/your/scripts/himawaripy/himawaripy.py
     
 ### For KDE Users
 > So the issue here is that KDE does not support changing the desktop wallpaper
@@ -57,7 +59,7 @@ You can also change the path of the latest picture, which is by default
 >
 > * Set the cron for some interval (say 9 minutes)
 > * Open Desktop Settings -> Wallpaper -> Wallpaper Type -> Slideshow
-> * Add the `~/.himawari` dir to the slideshow list
+> * Add the `~/.config/himawari` dir to the slideshow list
 > * Set the interval check to 10 minutes (one minute after the cron, also
 >   depending on your download speed)
 
@@ -67,6 +69,10 @@ Many thanks to [xenithorb](https://github.com/xenithorb) [for the solution](http
 ![Earth, as 2016/02/04/13:30:00 GMT](http://i.imgur.com/4XA6WaM.jpg)
     
 ## Attributions
+Thanks to *[Bora Alper](https://github.com/boramalper)* for the initial Python
+implementation. I made it a bit more Pythonic and added logging, but his also
+seems to still be under active development.
+
 Thanks to *[MichaelPote](https://github.com/MichaelPote)* for the [initial
 implementation](https://gist.github.com/MichaelPote/92fa6e65eacf26219022) using
 Powershell Script.
