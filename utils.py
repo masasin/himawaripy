@@ -1,10 +1,60 @@
 # http://stackoverflow.com/a/21213358/4466589
 import os
 import sys
-from subprocess import call, check_output
+from subprocess import call, check_output, CalledProcessError
 import re
 
-from config import OUTPUT_FILE, logger
+from config import OUTPUT_FILE, logger, xfce_displays
+
+
+def set_background():
+    logger.info("Setting background")
+    de = get_desktop_environment()
+    if de in ("gnome", "unity", "cinnamon", "pantheon", "gnome-classic"):
+        # Because of a bug and stupid design of gsettings
+        # see http://askubuntu.com/a/418521/388226
+        if de == "unity":
+            call("gsettings set org.gnome.desktop.background "
+                 "draw-background false".split())
+        call("gsettings set org.gnome.desktop.background picture-uri "
+             "file://{}".format(OUTPUT_FILE).split())
+        call("gsettings set org.gnome.desktop.background "
+             "picture-options scaled".split())
+        call("gsettings set org.gnome.desktop.background "
+             "primary-color FFFFFF".split())
+    elif de == "mate":
+        call("gsettings set org.mate.background picture-filename {}"
+             .format(OUTPUT_FILE).split())
+    elif de == "i3":
+        call("feh --bg-fill {}".format(OUTPUT_FILE).split())
+    elif de == "xfce4":
+        for display in xfce_displays:
+            call("xfconf-query --channel xfce4-desktop --property "
+                 "{} --set {}".format(display, OUTPUT_FILE).split())
+    elif de == "lxde":
+        call("pcmanfm --set-wallpaper {} --wallpaper-mode=fit"
+             .format(OUTPUT_FILE).split())
+    elif de == "mac":
+        call('osascript -e tell application "System Events"\n'
+             'set theDesktops to a reference to every desktop\n'
+             'repeat with aDesktop in theDesktops\n'
+             'set the picture of aDesktop to "{}"\nend repeat\nend tell'
+             .format(OUTPUT_FILE).split())
+        call("killall Dock".split())
+    elif has_program("feh")
+        logger.info("Unknown desktop environment '{}'".format(de)
+                    + ", but 'feh' is installed and will be used.")
+        os.environ["DISPLAY"] = ":0"
+        call("feh --bg-max {}".format(OUTPUT_FILE).split())
+    elif has_program("nitrogen")
+        logger.info("Unknown desktop environment '{}'".format(de)
+                    + ", but 'nitrogen' is installed and will be used.")
+        os.environ["DISPLAY"] = ":0"
+        call("nitrogen --restore".split())
+    else:
+        logger.error("Your desktop environment '{}' is not supported"
+                     .format(de))
+        sys.exit(1)
 
 
 def get_desktop_environment():
@@ -23,7 +73,8 @@ def get_desktop_environment():
             if desktop_session in ("gnome", "unity", "cinnamon", "mate",
                                    "xfce4", "lxde", "fluxbox", "blackbox",
                                    "openbox", "icewm", "jwm", "afterstep",
-                                   "trinity", "kde"):
+                                   "trinity", "kde", "pantheon", "i3",
+                                   "gnome-classic"):
                 return desktop_session
 
             ## Special cases ##
@@ -46,7 +97,7 @@ def get_desktop_environment():
         if os.environ.get('KDE_FULL_SESSION') == 'true':
             return "kde"
         elif os.environ.get('GNOME_DESKTOP_SESSION_ID'):
-            if not "deprecated" in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+            if "deprecated" not in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
                 return "gnome2"
         # From http://ubuntuforums.org/showthread.php?t=652320
         elif is_running("xfce-mcs-manage"):
@@ -70,47 +121,17 @@ def get_desktop_environment():
     return "unknown"
 
 
+def has_program(program):
+    try:
+        check_output("which {}".format(program).split())
+        return True
+    except CalledProcessError:
+        return False
+
+
 def is_running(process):
-    # From http://www.bloggerpolis.com/2011/05/how-to-check-if-a-process-is-running-using-python/
-    # and http://richarddingwall.name/2009/06/18/windows-equivalents-of-ps-and-kill-commands/
-    try:  # Linux/Unix
-        s = check_output("ps axw".split())
-    except:  #Windows
-        s = check_output("tasklist /v".split())
-    for x in s.stdout:
-        if re.search(process, str(x)):
-            return True
-    return False
-
-
-def set_background():
-    logger.info("Setting background")
-    de = get_desktop_environment()
-    if de in ("gnome", "unity", "cinnamon"):
-        # Because of a bug and stupid design of gsettings
-        # see http://askubuntu.com/a/418521/388226
-        if de == "unity":
-            call("gsettings set org.gnome.desktop.background "
-                 "draw-background false".split())
-        call("gsettings set org.gnome.desktop.background picture-uri "
-             "file://{}".format(OUTPUT_FILE).split())
-        call("gsettings set org.gnome.desktop.background "
-             "picture-options scaled".split())
-    elif de == "mate":
-        call('gconftool-2 -type string -set '
-             '/desktop/gnome/background/picture_filename "{}"'
-             .format(OUTPUT_FILE).split())
-    elif de == "xfce4":
-        call("xfconf-query --channel xfce4-desktop --property "
-                "/backdrop/screen0/monitor0/image-path --set {}"
-             .format(OUTPUT_FILE).split())
-    elif de == "lxde":
-        call("display -window root {}".format(OUTPUT_FILE).split())
-    elif de == "mac":
-        call('osascript -e \'tell application "Finder" to set '
-             'desktop picture to POSIX file "{}"\''
-             .format(OUTPUT_FILE).split())
-    else:
-        logger.error("Your desktop environment '{}' is not supported"
-                     .format(de))
-        sys.exit(1)
+    try:
+        check_output("pidof {}".format(process).split())
+        return True
+    except CalledProcessError:
+        return False

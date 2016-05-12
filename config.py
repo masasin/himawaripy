@@ -43,3 +43,8 @@ for library in ("PIL", "requests", "urllib3"):
     logging.getLogger(library).setLevel(logging.WARNING)
 
 logger = logging.getLogger("himawaripy")
+
+
+# Xfce4 displays to change the background of
+xfce_displays = ["/backdrop/screen0/monitor0/image-path",
+                 "/backdrop/screen0/monitor0/workspace0/last-image"]
