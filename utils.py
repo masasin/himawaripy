@@ -4,6 +4,8 @@ import sys
 import subprocess
 import re
 
+from config import OUTPUT_FILE, logger
+
 
 def get_desktop_environment():
     # From http://stackoverflow.com/questions/2035657/what-is-my-current-desktop-environment

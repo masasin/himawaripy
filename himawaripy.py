@@ -3,60 +3,15 @@ from contextlib import contextmanager
 from io import BytesIO
 from json import loads
 import os
-from subprocess import call
-import logging
 import sys
 from time import strptime, strftime
-import sys
 
 from PIL import Image
 import requests
 from tqdm import tqdm
 
-from utils import get_desktop_environment
-
-
-_HOME_DIR = os.getenv("USER_HOME", "/tmp")
-_LOG_DIR = os.path.join(_HOME_DIR, ".logs")
-_LOG_FILE = os.path.join(_LOG_DIR, "himawaripy.log")
-os.makedirs(_LOG_DIR, exist_ok=True)
-
-JSON_URL = "http://himawari8-dl.nict.go.jp/himawari8/img/D531106/latest.json"
-IMAGE_URL = "http://himawari8.nict.go.jp/img/D531106/{}d/{}/{}_{}_{}.png"
-TIMEOUT = 1  # second
-
-# Time formats
-LOGFILE_FMT = "%(name)-12s : %(levelname)-8s  %(message)s"
-CONSOLE_FMT = "%(levelname)-8s : %(message)s"
-DATE_FMT_ISO = "%Y-%m-%d %H:%M:%S"
-DATE_FMT_URL = "%Y/%m/%d/%H%M%S"
-
-# Tile size
-WIDTH = 550
-HEIGHT = 550
-
-LEVEL = 4  # Increases the quality and the size. Possible values: 4, 8, 16, 20
-
-OUTPUT_FILE = os.path.expanduser("~/.config/himawari/himawari-latest.png")
-
-# Log everything to file
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s " + LOGFILE_FMT,
-                    datefmt=DATE_FMT_ISO,
-                    filename=_LOG_FILE,
-                    filemode="a")
-
-# Log important data to console
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-console.setFormatter(logging.Formatter(CONSOLE_FMT))
-logging.getLogger("").addHandler(console)
-
-# Hide info logs from requests
-for library in ("PIL", "requests", "urllib3"):
-    logging.getLogger(library).setLevel(logging.WARNING)
-
-logger = logging.getLogger("himawaripy")
+from config import (HEIGHT, WIDTH, LEVEL, OUTPUT_FILE, TIMEOUT, JSON_URL,
+                    IMAGE_URL, DATE_FMT_ISO, DATE_FMT_URL, logger)
 
 
 def main():
