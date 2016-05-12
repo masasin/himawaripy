@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from config import (HEIGHT, WIDTH, LEVEL, OUTPUT_FILE, TIMEOUT, JSON_URL,
                     IMAGE_URL, DATE_FMT_ISO, DATE_FMT_URL, logger)
+from utils import set_background
 
 
 def main():
@@ -52,39 +53,6 @@ def build_png(png, time_as_url):
                 tile = Image.open(BytesIO(tiledata))
                 png.paste(tile, (WIDTH*x, HEIGHT*y, WIDTH*(x+1), HEIGHT*(y+1)))
                 pbar.update()
-
-
-def set_background():
-    logger.info("Setting background")
-    de = get_desktop_environment()
-    if de in ("gnome", "unity", "cinnamon"):
-        # Because of a bug and stupid design of gsettings
-        # see http://askubuntu.com/a/418521/388226
-        if de == "unity":
-            call("gsettings set org.gnome.desktop.background "
-                 "draw-background false".split())
-        call("gsettings set org.gnome.desktop.background picture-uri "
-             "file://{}".format(OUTPUT_FILE).split())
-        call("gsettings set org.gnome.desktop.background "
-             "picture-options scaled".split())
-    elif de == "mate":
-        call('gconftool-2 -type string -set '
-             '/desktop/gnome/background/picture_filename "{}"'
-             .format(OUTPUT_FILE).split())
-    elif de == "xfce4":
-        call("xfconf-query --channel xfce4-desktop --property "
-                "/backdrop/screen0/monitor0/image-path --set {}"
-             .format(OUTPUT_FILE).split())
-    elif de == "lxde":
-        call("display -window root {}".format(OUTPUT_FILE).split())
-    elif de == "mac":
-        call('osascript -e \'tell application "Finder" to set '
-             'desktop picture to POSIX file "{}"\''
-             .format(OUTPUT_FILE).split())
-    else:
-        logger.error("Your desktop environment '{}' is not supported"
-                     .format(de))
-        sys.exit(1)
 
 
 if __name__ == "__main__":

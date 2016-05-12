@@ -1,7 +1,7 @@
 # http://stackoverflow.com/a/21213358/4466589
 import os
 import sys
-import subprocess
+from subprocess import call, check_output
 import re
 
 from config import OUTPUT_FILE, logger
@@ -81,3 +81,36 @@ def is_running(process):
         if re.search(process, str(x)):
             return True
     return False
+
+
+def set_background():
+    logger.info("Setting background")
+    de = get_desktop_environment()
+    if de in ("gnome", "unity", "cinnamon"):
+        # Because of a bug and stupid design of gsettings
+        # see http://askubuntu.com/a/418521/388226
+        if de == "unity":
+            call("gsettings set org.gnome.desktop.background "
+                 "draw-background false".split())
+        call("gsettings set org.gnome.desktop.background picture-uri "
+             "file://{}".format(OUTPUT_FILE).split())
+        call("gsettings set org.gnome.desktop.background "
+             "picture-options scaled".split())
+    elif de == "mate":
+        call('gconftool-2 -type string -set '
+             '/desktop/gnome/background/picture_filename "{}"'
+             .format(OUTPUT_FILE).split())
+    elif de == "xfce4":
+        call("xfconf-query --channel xfce4-desktop --property "
+                "/backdrop/screen0/monitor0/image-path --set {}"
+             .format(OUTPUT_FILE).split())
+    elif de == "lxde":
+        call("display -window root {}".format(OUTPUT_FILE).split())
+    elif de == "mac":
+        call('osascript -e \'tell application "Finder" to set '
+             'desktop picture to POSIX file "{}"\''
+             .format(OUTPUT_FILE).split())
+    else:
+        logger.error("Your desktop environment '{}' is not supported"
+                     .format(de))
+        sys.exit(1)
