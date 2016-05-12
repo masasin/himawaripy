@@ -37,7 +37,7 @@ You can also change the path of the latest picture, which is by default
     
     # configure
     cd himawaripy
-    vi himawaripy.py
+    vi config.py
     
     # test whether it's working
     ./himawaripy.py
